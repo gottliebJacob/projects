@@ -22,6 +22,8 @@ export const getReport = async (req: Request, res: Response) => {
         FROM caregiver
         JOIN visit ON visit.caregiver = caregiver.id
         JOIN patient ON patient.id = visit.patient
+        WHERE visit.date >= '${req.params.year}-01-01' AND 
+		visit.date < '${req.params.year + 1}-01-01'
     `;
     
     let result : QueryResult;
@@ -33,10 +35,10 @@ export const getReport = async (req: Request, res: Response) => {
         };
 
         for ( let row of result.rows) {
-            report.caregivers.push({
-                name: row.caregiver_name,
-                patients: [row.patient_name]
-            })
+                report.caregivers.push({
+                    name: row.caregiver_name,
+                    patients: [row.patient_name]
+                })
         }
         res.status(200).json(report);
     } catch (error) {
