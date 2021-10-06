@@ -34,6 +34,28 @@ type State =
           error: string;
       };
 
+const unifyPatientsByCaregiver = (params: t.TypeOf<typeof resType>) => {
+    const report: Report = {
+        year: params.year,
+        caregivers: []
+    };
+
+    let caregiverIndex
+    for ( let row of params.caregivers) {
+        caregiverIndex = report.caregivers.findIndex(c => c.name === row.name)
+        if (caregiverIndex !== -1) {
+            report.caregivers[caregiverIndex].patients = [ ...report.caregivers[caregiverIndex].patients, ...row.patients ]
+        }
+        else {
+            report.caregivers.push({
+                name: row.name,
+                patients: row.patients
+            })
+        }
+    }
+    return report
+}
+
 function useDashboard(params: { year: number }) {
     const [state, setState] = React.useState<State>({ type: "Initial" });
 
@@ -60,7 +82,7 @@ function useDashboard(params: { year: number }) {
                     throw new Error("Error");
                 }
 
-                setState({ type: "Resolved", report: response.data, isRefreshing: false });
+                setState({ type: "Resolved", report: unifyPatientsByCaregiver(response.data), isRefreshing: false });
             })
             .catch(() => {
                 setState({ type: "Rejected", error: "Error" });
